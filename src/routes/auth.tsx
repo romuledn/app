@@ -50,8 +50,8 @@ function AuthPage() {
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Account created! Check your email to confirm your address.");
-    setView("sign-in");
+    toast.success("Account created successfully!");
+    navigate({ to: "/dashboard" });
   };
 
   const resetPassword = async () => {
