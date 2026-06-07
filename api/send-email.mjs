@@ -1,5 +1,24 @@
-// Vercel serverless function — sends transactional emails via Resend
-// Env var required: RESEND_API_KEY
+// Vercel serverless function — sends transactional emails via Hostinger SMTP
+// Env vars required: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM
+
+import nodemailer from "nodemailer";
+
+let transporter;
+
+function getTransporter() {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || "smtp.hostinger.com",
+      port: parseInt(process.env.SMTP_PORT || "465"),
+      secure: true, // SSL
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+  }
+  return transporter;
+}
 
 export default async function handler(req, res) {
   // CORS preflight
@@ -14,9 +33,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.error("RESEND_API_KEY not set");
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.error("SMTP credentials not set");
     return res.status(500).json({ error: "Email service not configured" });
   }
 
@@ -33,38 +51,25 @@ export default async function handler(req, res) {
     // Build a nicely formatted HTML email
     const html = buildHtml({ message, documentType, documentNumber, clientName, total, shareUrl });
 
-    const resendPayload = {
-      from: process.env.RESEND_FROM_EMAIL || "Senes Media <noreply@senesmedia.com>",
-      to: [to],
+    const fromAddress = process.env.SMTP_FROM || `Senes Media <${process.env.SMTP_USER}>`;
+
+    const mailOptions = {
+      from: fromAddress,
+      to,
       subject,
       html,
       text: message,
     };
 
     if (replyTo) {
-      resendPayload.reply_to = replyTo;
+      mailOptions.replyTo = replyTo;
     }
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(resendPayload),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      console.error("Resend error:", result);
-      return res.status(response.status).json({
-        error: result.message || "Failed to send email",
-      });
-    }
+    const transport = getTransporter();
+    const info = await transport.sendMail(mailOptions);
 
     res.setHeader("Access-Control-Allow-Origin", "*");
-    return res.status(200).json({ success: true, id: result.id });
+    return res.status(200).json({ success: true, id: info.messageId });
   } catch (err) {
     console.error("send-email error:", err);
     return res.status(500).json({ error: err.message || "Internal error" });
