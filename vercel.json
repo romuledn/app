@@ -16,6 +16,10 @@
       "headers": { "Cache-Control": "public, max-age=86400" }
     },
     {
+      "src": "/api/send-email",
+      "dest": "/api/send-email.mjs"
+    },
+    {
       "handle": "filesystem"
     },
     {
