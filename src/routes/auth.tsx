@@ -12,7 +12,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-type AuthView = "sign-in" | "forgot-password";
+type AuthView = "sign-in" | "sign-up" | "forgot-password";
 
 function AuthPage() {
   const { user, loading } = useAuth();
@@ -20,6 +20,8 @@ function AuthPage() {
   const [view, setView] = useState<AuthView>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [busy, setBusy] = useState(false);
 
   if (loading) return null;
@@ -31,6 +33,25 @@ function AuthPage() {
     setBusy(false);
     if (error) return toast.error(error.message);
     navigate({ to: "/dashboard" });
+  };
+
+  const signUp = async () => {
+    if (!email.trim()) return toast.error("Enter your email address");
+    if (password.length < 6) return toast.error("Password must be at least 6 characters");
+    if (password !== confirmPassword) return toast.error("Passwords do not match");
+    setBusy(true);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: `${window.location.origin}/auth`,
+      },
+    });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Account created! Check your email to confirm your address.");
+    setView("sign-in");
   };
 
   const resetPassword = async () => {
@@ -103,6 +124,54 @@ function AuthPage() {
                   <Button className="w-full" onClick={signIn} disabled={busy}>
                     {busy ? "Signing in…" : "Sign in"}
                   </Button>
+                  <p className="text-center text-sm text-muted-foreground">
+                    Don't have an account?{" "}
+                    <button
+                      type="button"
+                      className="text-primary font-medium hover:underline"
+                      onClick={() => setView("sign-up")}
+                    >
+                      Sign up
+                    </button>
+                  </p>
+                </div>
+              </>
+            ) : view === "sign-up" ? (
+              <>
+                <div>
+                  <h1 className="font-display text-3xl font-bold">Create account</h1>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Get started with Senes Accounts
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <Field label="Full name" value={fullName} setValue={setFullName} type="text" />
+                  <Field label="Email" value={email} setValue={setEmail} type="email" />
+                  <Field
+                    label="Password"
+                    value={password}
+                    setValue={setPassword}
+                    type="password"
+                  />
+                  <Field
+                    label="Confirm password"
+                    value={confirmPassword}
+                    setValue={setConfirmPassword}
+                    type="password"
+                  />
+                  <Button className="w-full" onClick={signUp} disabled={busy}>
+                    {busy ? "Creating account…" : "Create account"}
+                  </Button>
+                  <p className="text-center text-sm text-muted-foreground">
+                    Already have an account?{" "}
+                    <button
+                      type="button"
+                      className="text-primary font-medium hover:underline"
+                      onClick={() => setView("sign-in")}
+                    >
+                      Sign in
+                    </button>
+                  </p>
                 </div>
               </>
             ) : (
