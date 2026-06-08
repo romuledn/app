@@ -59,6 +59,11 @@ export default async function handler(req, res) {
       subject,
       html,
       text: message,
+      headers: {
+        "X-Mailer": "Senes Accounts",
+        "List-Unsubscribe": `<mailto:${process.env.SMTP_USER || "accounts@senesmedia.com"}?subject=unsubscribe>`,
+        "Precedence": "bulk",
+      },
     };
 
     if (replyTo) {
@@ -120,7 +125,9 @@ function buildHtml({ message, documentType, documentNumber, clientName, total, s
       ${viewButton}
     </div>
     <div style="text-align:center;margin-top:24px;color:#9ca3af;font-size:12px">
-      &copy; Senes Media &middot; Sent via Senes Accounts
+      <p style="margin:0">&copy; ${new Date().getFullYear()} Senes Media</p>
+      <p style="margin:4px 0 0">This is a transactional email regarding your ${documentType || "document"} with Senes Media.</p>
+      <p style="margin:4px 0 0">Senes Media &middot; South Africa</p>
     </div>
   </div>
 </body>
