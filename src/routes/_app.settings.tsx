@@ -33,7 +33,8 @@ function Settings() {
   const [confirmText, setConfirmText] = useState("");
   const [f, setF] = useState({
     business_name: "", business_email: "", business_phone: "", business_address: "",
-    default_currency: "ZAR", terms_conditions: "", deposit_percent: 60, bank_details: "",
+    default_currency: "ZAR", terms_conditions: "", deposit_percent: 60,
+    bank_accounts: {} as Record<string, string>,
   });
   useEffect(() => {
     if (profile) setF({
@@ -44,7 +45,7 @@ function Settings() {
       default_currency: profile.default_currency ?? "ZAR",
       terms_conditions: profile.terms_conditions ?? "",
       deposit_percent: Number(profile.deposit_percent ?? 60),
-      bank_details: profile.bank_details ?? "",
+      bank_accounts: (profile.bank_accounts as Record<string, string>) ?? {},
     });
   }, [profile]);
 
@@ -120,14 +121,31 @@ function Settings() {
           <Row label="Terms & conditions (appears on every PDF)">
             <Textarea rows={5} value={f.terms_conditions} onChange={(e) => setF({ ...f, terms_conditions: e.target.value })} />
           </Row>
-          <Row label="Banking / payment details (printed on invoices)">
-            <Textarea
-              rows={4}
-              value={f.bank_details}
-              placeholder={"Bank: FNB\nAccount Name: Senes Media\nAccount No: 123456789\nBranch Code: 250655\nRef: Invoice number"}
-              onChange={(e) => setF({ ...f, bank_details: e.target.value })}
-            />
-          </Row>
+          <div className="space-y-1.5">
+            <Label>Banking / payment details per currency (printed on invoices)</Label>
+            <p className="text-xs text-muted-foreground">The matching bank account is automatically printed on each invoice based on its currency.</p>
+            <div className="space-y-3 mt-2">
+              {CURRENCIES.map((c) => (
+                <div key={c.code} className="rounded-lg border bg-muted/30 p-3 space-y-1.5">
+                  <Label className="flex items-center gap-2 text-sm">
+                    <span>{c.code === "ZAR" ? "\u{1F1FF}\u{1F1E6}" : c.code === "USD" ? "\u{1F1FA}\u{1F1F8}" : "\u{1F1F2}\u{1F1FC}"}</span>
+                    {c.label} ({c.code})
+                  </Label>
+                  <Textarea
+                    rows={3}
+                    value={f.bank_accounts[c.code] ?? ""}
+                    placeholder={c.code === "ZAR"
+                      ? "Bank: FNB\nAccount Name: Senes Media\nAccount No: 123456789\nBranch Code: 250655\nRef: Invoice number"
+                      : c.code === "MWK"
+                      ? "Bank: National Bank of Malawi\nAccount Name: Senes Media\nAccount No: 000000000\nBranch: Lilongwe"
+                      : "Bank: Wise / Payoneer\nAccount Name: Senes Media\nRouting: 000000000\nAccount: 000000000"
+                    }
+                    onChange={(e) => setF({ ...f, bank_accounts: { ...f.bank_accounts, [c.code]: e.target.value } })}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="flex justify-end"><Button onClick={save}>Save changes</Button></div>
             </CardContent>
           </Card>

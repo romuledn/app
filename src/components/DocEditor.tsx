@@ -124,7 +124,7 @@ export function DocEditor({
     depositPercent: isQuote ? Number(row.deposit_percent || 0) : 0,
     total: Number(row.total),
     notes: row.notes,
-    bankDetails: profile?.bank_details || null,
+    bankDetails: (profile?.bank_accounts as Record<string, string>)?.[row.currency] || profile?.bank_details || null,
     issueDate: isQuote ? new Date().toISOString() : row.issue_date,
     dueOrValidLabel: isQuote ? "Valid until" : "Due",
     dueOrValid: isQuote ? row.valid_until : row.due_date,
