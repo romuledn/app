@@ -10,8 +10,10 @@ type EmailPayload = {
   shareUrl?: string;
 };
 
+const EMAIL_API = "https://senes-accounts.vercel.app/api/send-email";
+
 export async function sendEmail(payload: EmailPayload): Promise<void> {
-  const res = await fetch("/api/send-email", {
+  const res = await fetch(EMAIL_API, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
