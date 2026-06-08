@@ -33,6 +33,7 @@ export type DocData = {
   total: number;
   amountPaid?: number;
   notes?: string | null;
+  bankDetails?: string | null;
   issueDate: string;
   dueOrValidLabel: string;
   dueOrValid?: string | null;
@@ -387,6 +388,20 @@ export async function generatePdf(doc: DocData): Promise<jsPDF> {
     pdf.setFontSize(40);
     pdf.setTextColor(...ACCENT);
     pdf.text("PAID", M + 60, ttY - 6, { angle: -12 });
+  }
+
+  // ===== Bank / Payment Details =====
+  if (doc.bankDetails && doc.kind !== "QUOTATION") {
+    const bankTop = ttY + 24;
+    pdf.setFont(DISPLAY, "bold");
+    pdf.setFontSize(10);
+    pdf.setTextColor(...INK);
+    pdf.text("Banking Details", M, bankTop);
+    pdf.setFont(BODY, "normal");
+    pdf.setFontSize(9);
+    pdf.setTextColor(...MUTED);
+    const bankLines = pdf.splitTextToSize(doc.bankDetails, W / 2 - M);
+    pdf.text(bankLines, M, bankTop + 12);
   }
 
   // ===== Footer: T&Cs (left) + Contact (right) — compact =====
