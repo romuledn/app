@@ -43,7 +43,6 @@ export function DocEditor({
     quotation_id: editing?.quotation_id ?? defaultQuotationId ?? null,
     recurring_interval: editing?.recurring_interval ?? "",
     terms: editing?.terms ?? profile?.terms_conditions ?? "",
-    bank_details: editing?.bank_details ?? (typeof window !== "undefined" ? localStorage.getItem("senes_bank_details") ?? "" : ""),
   }));
 
   useEffect(() => {
@@ -125,7 +124,7 @@ export function DocEditor({
     depositPercent: isQuote ? Number(row.deposit_percent || 0) : 0,
     total: Number(row.total),
     notes: row.notes,
-    bankDetails: form.bank_details || null,
+    bankDetails: profile?.bank_details || null,
     issueDate: isQuote ? new Date().toISOString() : row.issue_date,
     dueOrValidLabel: isQuote ? "Valid until" : "Due",
     dueOrValid: isQuote ? row.valid_until : row.due_date,
@@ -255,20 +254,6 @@ export function DocEditor({
         </div>
 
         <Field label="Notes"><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field>
-
-        {!isQuote && (
-          <Field label="Banking / Payment Details (printed on invoice)">
-            <Textarea
-              rows={3}
-              value={form.bank_details}
-              placeholder={"Bank: FNB\nAccount Name: Senes Media\nAccount No: 123456789\nBranch Code: 250655\nRef: Invoice number"}
-              onChange={(e) => {
-                setForm({ ...form, bank_details: e.target.value });
-                localStorage.setItem("senes_bank_details", e.target.value);
-              }}
-            />
-          </Field>
-        )}
 
         <Field label="Terms & Conditions (printed on the document)">
           <Textarea
