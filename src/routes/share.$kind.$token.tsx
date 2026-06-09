@@ -54,6 +54,7 @@ function DocShare({ kind, token }: { kind: string; token: string }) {
     subtotal: Number(row.subtotal), discount: Number(row.discount || 0), taxRate: Number(row.tax_rate),
     depositPercent: isQuote ? Number(row.deposit_percent || 0) : 0,
     total: Number(row.total), notes: row.notes,
+    bankDetails: (profile?.bank_accounts as Record<string, string> | null)?.[row.currency || profile?.default_currency || "ZAR"] || profile?.bank_details || null,
     issueDate: isQuote ? row.created_at : row.issue_date,
     dueOrValidLabel: isQuote ? "Valid until" : "Due",
     dueOrValid: isQuote ? row.valid_until : row.due_date,

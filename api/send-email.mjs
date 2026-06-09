@@ -51,9 +51,7 @@ export default async function handler(req, res) {
     // Build tracking pixel URL if we have tracking info
     let trackingPixel = "";
     if (trackingId && trackingTable) {
-      const baseUrl = process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "https://senes-accounts.vercel.app";
+      const baseUrl = process.env.APP_URL || "https://accounts.senesmedia.com";
       trackingPixel = `${baseUrl}/api/track-open?t=${trackingTable}&id=${trackingId}`;
     }
 

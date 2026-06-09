@@ -199,6 +199,8 @@ export type Database = {
           next_issue_date: string | null
           notes: string | null
           number: string
+          open_count: number
+          opened_at: string | null
           paid_at: string | null
           quotation_id: string | null
           recurring_interval: string | null
@@ -231,6 +233,8 @@ export type Database = {
           next_issue_date?: string | null
           notes?: string | null
           number: string
+          open_count?: number
+          opened_at?: string | null
           paid_at?: string | null
           quotation_id?: string | null
           recurring_interval?: string | null
@@ -263,6 +267,8 @@ export type Database = {
           next_issue_date?: string | null
           notes?: string | null
           number?: string
+          open_count?: number
+          opened_at?: string | null
           paid_at?: string | null
           quotation_id?: string | null
           recurring_interval?: string | null
@@ -328,6 +334,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bank_accounts: Json
+          bank_details: string | null
           brand_color: string
           business_address: string | null
           business_email: string | null
@@ -343,6 +351,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          bank_accounts?: Json
+          bank_details?: string | null
           brand_color?: string
           business_address?: string | null
           business_email?: string | null
@@ -358,6 +368,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          bank_accounts?: Json
+          bank_details?: string | null
           brand_color?: string
           business_address?: string | null
           business_email?: string | null
@@ -604,6 +616,8 @@ export type Database = {
           items: Json
           notes: string | null
           number: string
+          open_count: number
+          opened_at: string | null
           sent_at: string | null
           sent_by: string | null
           share_token: string
@@ -634,6 +648,8 @@ export type Database = {
           items?: Json
           notes?: string | null
           number: string
+          open_count?: number
+          opened_at?: string | null
           sent_at?: string | null
           sent_by?: string | null
           share_token?: string
@@ -664,6 +680,8 @@ export type Database = {
           items?: Json
           notes?: string | null
           number?: string
+          open_count?: number
+          opened_at?: string | null
           sent_at?: string | null
           sent_by?: string | null
           share_token?: string
