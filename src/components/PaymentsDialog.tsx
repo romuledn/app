@@ -63,7 +63,10 @@ export function PaymentsDialog({ invoice, open, onOpenChange }: { invoice: any; 
     return null;
   };
 
-  const addPayment = async (amt?: number, opts?: { method?: string; reference?: string; isDeposit?: boolean }) => {
+  // Track the actual amount that was just paid (for the email preview)
+  const [lastPaidAmount, setLastPaidAmount] = useState<number>(0);
+
+  const addPayment = async (amt?: number, opts?: { method?: string; reference?: string }) => {
     const value = Number(amt ?? amount);
     if (!value || value <= 0) return toast.error("Enter an amount");
     const m = opts?.method ?? method;
@@ -73,6 +76,7 @@ export function PaymentsDialog({ invoice, open, onOpenChange }: { invoice: any; 
     });
     if (error) return toast.error(error.message);
     const newPaid = totalPaid + value;
+    const newRemaining = Math.max(0, Number(invoice.total) - newPaid);
     const fullyPaid = newPaid >= Number(invoice.total);
     await supabase.from("invoices").update({
       amount_paid: newPaid,
@@ -84,13 +88,19 @@ export function PaymentsDialog({ invoice, open, onOpenChange }: { invoice: any; 
     qc.invalidateQueries({ queryKey: ["invoices"] });
     qc.invalidateQueries({ queryKey: ["projects"] });
     setAmount(0); setMethod(""); setReference("");
-    toast.success(fullyPaid ? "Invoice fully paid" : "Payment recorded");
+    setLastPaidAmount(value);
+    toast.success(
+      fullyPaid
+        ? "Invoice fully paid"
+        : `Payment of ${formatMoney(value, invoice.currency)} recorded · Balance: ${formatMoney(newRemaining, invoice.currency)}`
+    );
 
-    // If this was a deposit (60%), find the project and show tracking email preview
-    if (opts?.isDeposit) {
+    // After ANY payment, if we've crossed the 60% mark, offer to send tracking link
+    const wasBelow60 = totalPaid < total * 0.6 - 0.001;
+    const nowAbove60 = newPaid >= total * 0.6 - 0.001;
+    if (wasBelow60 && nowAbove60) {
       const proj = await findProject();
       if (proj) {
-        // Enable client_visible on the project
         await supabase.from("projects").update({ client_visible: true }).eq("id", proj.id);
         setTrackingProject({ ...proj, client_visible: true });
         setShowTrackingPreview(true);
@@ -115,10 +125,16 @@ export function PaymentsDialog({ invoice, open, onOpenChange }: { invoice: any; 
   const clientEmail = invoice?.clients?.email || "";
   const businessName = profile?.business_name || "Senes Media";
 
+  // Use actual cumulative paid amount for the email (totalPaid may be stale, so add lastPaidAmount)
+  const paidSoFar = totalPaid + lastPaidAmount;
+  const balanceAfter = Math.max(0, total - paidSoFar);
+
   const trackingEmailSubject = `Your project is underway — ${invoice?.title || "Project"}`;
   const trackingEmailBody =
     `Hi ${clientName},\n\n` +
-    `Great news! We've received your 60% deposit payment of ${formatMoney(sixtyAmount || total * 0.6, invoice?.currency || "ZAR")} for "${invoice?.title}".\n\n` +
+    `Great news! We've received your payment of ${formatMoney(lastPaidAmount, invoice?.currency || "ZAR")} for "${invoice?.title}".\n\n` +
+    `Total paid so far: ${formatMoney(paidSoFar, invoice?.currency || "ZAR")}\n` +
+    `Outstanding balance: ${formatMoney(balanceAfter, invoice?.currency || "ZAR")}\n\n` +
     `Your project is now officially underway. You can track the progress live using the link below:\n\n` +
     `${trackingUrl}\n\n` +
     `This page updates in real-time as our team makes progress. You can also leave feedback and request revision meetings directly from the tracking page.\n\n` +
@@ -173,10 +189,12 @@ export function PaymentsDialog({ invoice, open, onOpenChange }: { invoice: any; 
           <DialogTitle className="flex items-center gap-2"><CreditCard className="h-4 w-4" /> Payments · #{invoice.number}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="rounded-lg border bg-muted/40 p-4">
-            <div className="flex justify-between text-sm"><span>Paid</span><span className="font-bold text-success">{formatMoney(totalPaid, invoice.currency)}</span></div>
-            <div className="flex justify-between text-sm"><span>Remaining</span><span className="font-bold text-primary">{formatMoney(remaining, invoice.currency)}</span></div>
-            <Progress value={pct} className="mt-2" />
+          <div className="rounded-lg border bg-muted/40 p-4 space-y-2">
+            <div className="flex justify-between text-sm"><span>Invoice Total</span><span className="font-semibold">{formatMoney(total, invoice.currency)}</span></div>
+            <div className="flex justify-between text-sm"><span>Total Paid</span><span className="font-bold text-success">{formatMoney(totalPaid, invoice.currency)}</span></div>
+            <div className="flex justify-between text-sm"><span>Outstanding Balance</span><span className="font-bold text-destructive">{formatMoney(remaining, invoice.currency)}</span></div>
+            <Progress value={pct} className="mt-1" />
+            <div className="text-[11px] text-center text-muted-foreground">{Math.round(pct)}% paid</div>
           </div>
 
           <div className="space-y-2">
@@ -185,7 +203,7 @@ export function PaymentsDialog({ invoice, open, onOpenChange }: { invoice: any; 
               <Button
                 variant={sixtyDone ? "outline" : "default"}
                 disabled={sixtyDone || sixtyAmount <= 0}
-                onClick={() => addPayment(sixtyAmount, { method: method || "Deposit", reference: reference || "60% deposit", isDeposit: true })}
+                onClick={() => addPayment(sixtyAmount, { method: method || "Deposit", reference: reference || "60% deposit" })}
               >
                 {sixtyDone ? "60% paid" : `Pay 60% · ${formatMoney(sixtyAmount, invoice.currency)}`}
               </Button>
@@ -237,9 +255,9 @@ export function PaymentsDialog({ invoice, open, onOpenChange }: { invoice: any; 
                     <div className="text-sm leading-relaxed text-muted-foreground space-y-3">
                       <p>Hi {clientName},</p>
                       <p>
-                        Great news! We've received your 60% deposit payment of{" "}
+                        Great news! We've received your payment of{" "}
                         <span className="font-semibold text-foreground">
-                          {formatMoney(sixtyAmount || total * 0.6, invoice?.currency || "ZAR")}
+                          {formatMoney(lastPaidAmount, invoice?.currency || "ZAR")}
                         </span>{" "}
                         for "<span className="font-medium text-foreground">{invoice?.title}</span>".
                       </p>
@@ -263,9 +281,21 @@ export function PaymentsDialog({ invoice, open, onOpenChange }: { invoice: any; 
                             <td className="py-1 font-semibold text-right">{formatMoney(total, invoice?.currency)}</td>
                           </tr>
                           <tr>
-                            <td className="py-1 text-muted-foreground">Deposit Paid</td>
+                            <td className="py-1 text-muted-foreground">This Payment</td>
                             <td className="py-1 font-semibold text-right text-success">
-                              {formatMoney(sixtyAmount || total * 0.6, invoice?.currency || "ZAR")}
+                              {formatMoney(lastPaidAmount, invoice?.currency || "ZAR")}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 text-muted-foreground">Total Paid</td>
+                            <td className="py-1 font-semibold text-right text-success">
+                              {formatMoney(paidSoFar, invoice?.currency || "ZAR")}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 text-muted-foreground">Balance Due</td>
+                            <td className={`py-1 font-semibold text-right ${balanceAfter <= 0 ? "text-success" : "text-destructive"}`}>
+                              {balanceAfter <= 0 ? "Settled" : formatMoney(balanceAfter, invoice?.currency || "ZAR")}
                             </td>
                           </tr>
                         </tbody>
@@ -328,11 +358,46 @@ export function PaymentsDialog({ invoice, open, onOpenChange }: { invoice: any; 
           <div className="space-y-2">
             <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Custom payment</div>
             <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1"><Label>Amount</Label><Input type="number" value={amount || ""} onChange={(e) => setAmount(Number(e.target.value))} /></div>
+              <div className="space-y-1"><Label>Amount</Label><Input type="number" value={amount || ""} onChange={(e) => setAmount(Number(e.target.value))} placeholder={formatMoney(remaining, invoice.currency)} /></div>
               <div className="space-y-1"><Label>Method</Label><Input placeholder="Bank, cash…" value={method} onChange={(e) => setMethod(e.target.value)} /></div>
             </div>
             <div className="space-y-1"><Label>Reference</Label><Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Transaction id, cheque #…" /></div>
-            <Button className="w-full" onClick={() => addPayment()}>Add payment</Button>
+
+            {/* Live balance preview while typing */}
+            {amount > 0 && (
+              <div className="rounded-md border bg-muted/30 p-3 space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Current balance</span>
+                  <span>{formatMoney(remaining, invoice.currency)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">This payment</span>
+                  <span className="text-success font-medium">− {formatMoney(Math.min(amount, remaining), invoice.currency)}</span>
+                </div>
+                <div className="border-t my-1" />
+                <div className="flex justify-between text-sm font-semibold">
+                  <span>New balance</span>
+                  <span className={Math.max(0, remaining - amount) <= 0 ? "text-success" : "text-destructive"}>
+                    {Math.max(0, remaining - amount) <= 0
+                      ? "Fully Paid ✓"
+                      : formatMoney(Math.max(0, remaining - amount), invoice.currency)}
+                  </span>
+                </div>
+                {/* Show if this payment will cross 60% threshold */}
+                {totalPaid < total * 0.6 && (totalPaid + amount) >= total * 0.6 && (
+                  <div className="flex items-center gap-1.5 mt-1 text-[11px] text-blue-600 dark:text-blue-400">
+                    <Send className="h-3 w-3" />
+                    <span>This payment crosses the 60% deposit mark — tracking link will be offered</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <Button className="w-full" onClick={() => addPayment()} disabled={!amount || amount <= 0}>
+              {amount > 0
+                ? `Add ${formatMoney(amount, invoice.currency)} payment`
+                : "Add payment"}
+            </Button>
           </div>
 
           <div className="space-y-2">
