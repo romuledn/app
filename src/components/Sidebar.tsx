@@ -10,14 +10,12 @@ import {
   TrendingUp,
   ReceiptText,
   ListTodo,
-  Bell,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
-import { useNotifications, useRole, markNotificationsRead } from "@/lib/queries";
-import { useQueryClient } from "@tanstack/react-query";
-import { Badge } from "@/components/ui/badge";
+import { useRole } from "@/lib/queries";
+import { NotificationCenter } from "@/components/NotificationCenter";
 
 const ALL_ITEMS = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", admin: true, accounts: false },
@@ -35,18 +33,9 @@ export function Sidebar() {
   const loc = useLocation();
   const { signOut, user } = useAuth();
   const { data: role } = useRole();
-  const { data: notif } = useNotifications();
-  const qc = useQueryClient();
   const isAdmin = !!role?.isAdmin;
 
   const items = ALL_ITEMS.filter((it) => (isAdmin ? it.admin : it.accounts));
-  const unread = notif?.events?.length ?? 0;
-
-  const handleBellClick = async () => {
-    if (!user) return;
-    await markNotificationsRead(user.id);
-    qc.invalidateQueries({ queryKey: ["notifications"] });
-  };
 
   return (
     <aside className="flex h-screen w-64 flex-col bg-sidebar text-sidebar-foreground">
@@ -55,19 +44,7 @@ export function Sidebar() {
         <Logo variant="white" className="h-10 w-auto" />
       </div>
 
-      {/* Notification badge */}
-      <button
-        onClick={handleBellClick}
-        className="mx-3 mb-3 flex items-center justify-between rounded-lg border border-sidebar-border bg-sidebar-accent/40 px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent"
-      >
-        <span className="flex items-center gap-2">
-          <Bell className="h-4 w-4" />
-          Notifications
-        </span>
-        {unread > 0 && (
-          <Badge className="bg-primary text-primary-foreground">{unread}</Badge>
-        )}
-      </button>
+      <NotificationCenter />
 
       <nav className="flex-1 space-y-1 px-3 overflow-y-auto">
         {items.map((it) => {

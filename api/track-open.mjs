@@ -48,9 +48,9 @@ export default async function handler(req, res) {
 
     const now = new Date().toISOString();
 
-    // Fetch current record via PostgREST
+    // Fetch current record via PostgREST (include user_id, number, client_id for notifications)
     const getResp = await fetch(
-      `${supabaseUrl}/rest/v1/${tableName}?id=eq.${id}&select=opened_at,open_count`,
+      `${supabaseUrl}/rest/v1/${tableName}?id=eq.${id}&select=opened_at,open_count,user_id,number,client_id`,
       {
         headers: {
           apikey: serviceKey,
@@ -68,8 +68,9 @@ export default async function handler(req, res) {
     if (!rows.length) return servePixel();
 
     const row = rows[0];
+    const isFirstOpen = !row.opened_at;
     const update = { open_count: (row.open_count || 0) + 1 };
-    if (!row.opened_at) update.opened_at = now;
+    if (isFirstOpen) update.opened_at = now;
 
     // Update via PostgREST
     const patchResp = await fetch(
@@ -90,6 +91,48 @@ export default async function handler(req, res) {
       console.error("track-open PATCH failed:", await patchResp.text());
     } else {
       console.log(`Email open tracked: ${tableName}/${id} (count: ${update.open_count})`);
+    }
+
+    // Log to activity_log for the notification center (on every open)
+    if (patchResp.ok && row.user_id) {
+      // Fetch client name for the notification
+      let clientName = "";
+      if (row.client_id) {
+        try {
+          const clientResp = await fetch(
+            `${supabaseUrl}/rest/v1/clients?id=eq.${row.client_id}&select=name,company`,
+            { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+          );
+          if (clientResp.ok) {
+            const clients = await clientResp.json();
+            if (clients.length) clientName = clients[0].company || clients[0].name || "";
+          }
+        } catch (e) { /* ignore */ }
+      }
+
+      const docType = table === "i" ? "invoice" : "quotation";
+      await fetch(`${supabaseUrl}/rest/v1/activity_log`, {
+        method: "POST",
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify({
+          user_id: row.user_id,
+          entity_type: tableName,
+          entity_id: id,
+          action: "email_opened",
+          meta: {
+            number: row.number || "",
+            client_name: clientName,
+            doc_type: docType,
+            open_count: update.open_count,
+            first_open: isFirstOpen,
+          },
+        }),
+      }).catch((e) => console.error("activity_log insert failed:", e.message));
     }
   } catch (err) {
     console.error("track-open error:", err.message);

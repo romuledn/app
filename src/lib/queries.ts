@@ -134,7 +134,7 @@ export function useNotifications() {
         .from("activity_log")
         .select("id, action, entity_type, entity_id, meta, created_at")
         .gt("created_at", since)
-        .in("action", ["sent", "reminder_sent", "accepted", "paid", "created", "created_from_quote", "marked_sent"])
+        .in("action", ["sent", "reminder_sent", "accepted", "paid", "created", "created_from_quote", "marked_sent", "email_opened"])
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
