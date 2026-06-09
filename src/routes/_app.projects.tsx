@@ -40,6 +40,7 @@ import {
   RotateCcw,
   Check,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProjectComments } from "@/components/ProjectComments";
@@ -373,6 +374,18 @@ function ProjectDetailDialog({
                   <Check className="mr-2 h-4 w-4" /> Mark complete
                 </Button>
               )}
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  if (!confirm("Delete this project? This cannot be undone.")) return;
+                  await supabase.from("projects").delete().eq("id", p.id);
+                  refresh();
+                  onOpenChange(false);
+                  toast.success("Project deleted");
+                }}
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Delete
+              </Button>
             </div>
           </div>
 

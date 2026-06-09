@@ -5,9 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Download, Send, FileDown, Search, ReceiptText } from "lucide-react";
+import { Download, Send, FileDown, Search, ReceiptText, Trash2 } from "lucide-react";
 import { formatMoney } from "@/lib/currency";
 import { downloadPdf, downloadCsv, openEmailWithPdf } from "@/lib/pdf";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/receipts")({
@@ -17,6 +19,7 @@ export const Route = createFileRoute("/_app/receipts")({
 function Receipts() {
   const { data: receipts = [] } = useReceipts();
   const { data: profile } = useProfile();
+  const qc = useQueryClient();
   const [q, setQ] = useState("");
 
   const buildDoc = (r: any): any => ({
@@ -119,6 +122,19 @@ function Receipts() {
                   }}
                 >
                   <Send className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title="Delete receipt"
+                  onClick={async () => {
+                    if (!confirm("Delete this receipt?")) return;
+                    await supabase.from("receipts").delete().eq("id", r.id);
+                    qc.invalidateQueries({ queryKey: ["receipts"] });
+                    toast.success("Receipt deleted");
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
               </div>
             </CardContent>
