@@ -111,28 +111,37 @@ export default async function handler(req, res) {
       }
 
       const docType = table === "i" ? "invoice" : "quotation";
-      await fetch(`${supabaseUrl}/rest/v1/activity_log`, {
-        method: "POST",
-        headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
-          "Content-Type": "application/json",
-          Prefer: "return=minimal",
-        },
-        body: JSON.stringify({
-          user_id: row.user_id,
-          entity_type: tableName,
-          entity_id: id,
-          action: "email_opened",
-          meta: {
-            number: row.number || "",
-            client_name: clientName,
-            doc_type: docType,
-            open_count: update.open_count,
-            first_open: isFirstOpen,
+      try {
+        const actResp = await fetch(`${supabaseUrl}/rest/v1/activity_log`, {
+          method: "POST",
+          headers: {
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
           },
-        }),
-      }).catch((e) => console.error("activity_log insert failed:", e.message));
+          body: JSON.stringify({
+            user_id: row.user_id,
+            entity_type: tableName,
+            entity_id: id,
+            action: "email_opened",
+            meta: {
+              number: row.number || "",
+              client_name: clientName,
+              doc_type: docType,
+              open_count: update.open_count,
+              first_open: isFirstOpen,
+            },
+          }),
+        });
+        if (!actResp.ok) {
+          console.error("activity_log insert failed:", actResp.status, await actResp.text());
+        } else {
+          console.log(`Notification logged: ${docType} ${row.number} opened by ${clientName || "unknown"}`);
+        }
+      } catch (e) {
+        console.error("activity_log insert error:", e.message);
+      }
     }
   } catch (err) {
     console.error("track-open error:", err.message);
