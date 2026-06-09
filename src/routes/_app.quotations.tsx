@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DocEditor } from "@/components/DocEditor";
-import { Plus, Download, Send, CheckCircle2, Trash2, FileText, Link2, FileDown, Search, Bell, Pencil } from "lucide-react";
+import { Plus, Download, Send, CheckCircle2, Trash2, FileText, Link2, FileDown, Search, Bell, Pencil, Eye } from "lucide-react";
 import { formatMoney } from "@/lib/currency";
 import { downloadPdf, downloadCsv, openEmailWithPdf } from "@/lib/pdf";
 import { ReminderDialog } from "@/components/ReminderDialog";
@@ -121,6 +121,11 @@ function Quotations() {
                   <span className="font-semibold">#{row.number}</span>
                   <StatusBadge status={row.status} />
                   {row.viewed_at && <Badge variant="outline" className="text-[10px]">viewed</Badge>}
+                  {row.opened_at && (
+                    <Badge variant="outline" className="text-[10px] border-blue-400/40 bg-blue-400/10 text-blue-600" title={`Email opened ${row.open_count || 1} time(s) — first opened ${new Date(row.opened_at).toLocaleString()}`}>
+                      <Eye className="mr-0.5 h-2.5 w-2.5" /> opened{row.open_count > 1 ? ` (${row.open_count}x)` : ""}
+                    </Badge>
+                  )}
                 </div>
                 <p className="truncate text-sm text-muted-foreground">{row.title} · {row.clients?.name}</p>
               </div>
@@ -137,7 +142,7 @@ function Quotations() {
                 <Button variant="ghost" size="icon" title="Download CSV" onClick={() => downloadCsv(buildDoc(row))}><FileDown className="h-4 w-4" /></Button>
                 <Button variant="ghost" size="icon" title="Send" onClick={async () => {
                   try {
-                    await openEmailWithPdf(buildDoc(row), `${window.location.origin}/share/q/${row.share_token}`);
+                    await openEmailWithPdf(buildDoc(row), `${window.location.origin}/share/q/${row.share_token}`, row.id);
                     await supabase.from("quotations").update({
                       status: "sent", sent_at: new Date().toISOString(),
                       follow_up_at: new Date(Date.now() + 2 * 86400000).toISOString(),

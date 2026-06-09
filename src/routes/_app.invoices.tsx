@@ -12,7 +12,7 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DocEditor } from "@/components/DocEditor";
 import { PaymentsTrigger } from "@/components/PaymentsDialog";
-import { Plus, Download, Send, Trash2, Receipt, Link2, FileDown, Search, Bell, Pencil } from "lucide-react";
+import { Plus, Download, Send, Trash2, Receipt, Link2, FileDown, Search, Bell, Pencil, Eye } from "lucide-react";
 import { formatMoney } from "@/lib/currency";
 import { downloadPdf, downloadCsv, openEmailWithPdf } from "@/lib/pdf";
 import { ReminderDialog } from "@/components/ReminderDialog";
@@ -122,6 +122,11 @@ function Invoices() {
                     }>{isOverdue ? "overdue" : i.status}</Badge>
                     {i.recurring_interval && <Badge variant="outline" className="text-[10px]">recurring · {i.recurring_interval}</Badge>}
                     {i.viewed_at && <Badge variant="outline" className="text-[10px]">viewed</Badge>}
+                    {i.opened_at && (
+                      <Badge variant="outline" className="text-[10px] border-blue-400/40 bg-blue-400/10 text-blue-600" title={`Email opened ${i.open_count || 1} time(s) — first opened ${new Date(i.opened_at).toLocaleString()}`}>
+                        <Eye className="mr-0.5 h-2.5 w-2.5" /> opened{i.open_count > 1 ? ` (${i.open_count}x)` : ""}
+                      </Badge>
+                    )}
                   </div>
                   <p className="truncate text-sm text-muted-foreground">{i.title} · {i.clients?.name}</p>
                 </div>
@@ -141,7 +146,7 @@ function Invoices() {
                   <Button variant="ghost" size="icon" title="Download CSV" onClick={() => downloadCsv(buildDoc(i))}><FileDown className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" title="Send" onClick={async () => {
                     try {
-                      await openEmailWithPdf(buildDoc(i), `${window.location.origin}/share/i/${i.share_token}`);
+                      await openEmailWithPdf(buildDoc(i), `${window.location.origin}/share/i/${i.share_token}`, i.id);
                       await supabase.from("invoices").update({ status: i.status === "paid" ? i.status : "sent", sent_at: new Date().toISOString() }).eq("id", i.id);
                       logActivity(user!.id, "invoices", i.id, "sent", { number: i.number });
                       qc.invalidateQueries({ queryKey: ["invoices"] });

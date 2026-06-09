@@ -477,7 +477,7 @@ export function downloadCsv(doc: DocData) {
   a.click();
 }
 
-export async function openEmailWithPdf(doc: DocData, shareUrl?: string) {
+export async function openEmailWithPdf(doc: DocData, shareUrl?: string, trackingId?: string) {
   const labelFor =
     doc.kind === "QUOTATION" ? "Quotation" : doc.kind === "RECEIPT" ? "Receipt" : "Invoice";
   const subject = `${labelFor} ${doc.number} — ${doc.title}`;
@@ -504,5 +504,7 @@ export async function openEmailWithPdf(doc: DocData, shareUrl?: string) {
     clientName: clientName(doc),
     total: formatMoney(doc.total, doc.currency),
     shareUrl: shareUrl || "",
+    trackingId: trackingId || undefined,
+    trackingTable: doc.kind === "QUOTATION" ? "q" : doc.kind === "INVOICE" ? "i" : undefined,
   });
 }

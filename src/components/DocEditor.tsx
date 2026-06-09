@@ -150,7 +150,7 @@ export function DocEditor({
     const row = await save("sent");
     if (row) {
       try {
-        await openEmailWithPdf(buildDoc(row), shareUrl(row));
+        await openEmailWithPdf(buildDoc(row), shareUrl(row), row.id);
         toast.success("Sent successfully");
       } catch (err: any) {
         toast.error(err.message || "Failed to send");

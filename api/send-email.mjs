@@ -42,14 +42,23 @@ export default async function handler(req, res) {
     const body =
       typeof req.body === "string" ? JSON.parse(req.body) : req.body;
 
-    const { to, subject, message, replyTo, documentType, documentNumber, clientName, total, shareUrl } = body;
+    const { to, subject, message, replyTo, documentType, documentNumber, clientName, total, shareUrl, trackingId, trackingTable } = body;
 
     if (!to || !subject || !message) {
       return res.status(400).json({ error: "Missing required fields: to, subject, message" });
     }
 
+    // Build tracking pixel URL if we have tracking info
+    let trackingPixel = "";
+    if (trackingId && trackingTable) {
+      const baseUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "https://senes-accounts.vercel.app";
+      trackingPixel = `${baseUrl}/api/track-open?t=${trackingTable}&id=${trackingId}`;
+    }
+
     // Build a nicely formatted HTML email
-    const html = buildHtml({ message, documentType, documentNumber, clientName, total, shareUrl });
+    const html = buildHtml({ message, documentType, documentNumber, clientName, total, shareUrl, trackingPixel });
 
     const fromAddress = process.env.SMTP_FROM || `Senes Media <${process.env.SMTP_USER}>`;
 
@@ -81,7 +90,7 @@ export default async function handler(req, res) {
   }
 }
 
-function buildHtml({ message, documentType, documentNumber, clientName, total, shareUrl }) {
+function buildHtml({ message, documentType, documentNumber, clientName, total, shareUrl, trackingPixel }) {
   const escapedMessage = message
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -129,6 +138,7 @@ function buildHtml({ message, documentType, documentNumber, clientName, total, s
       <p style="margin:4px 0 0">This is a transactional email regarding your ${documentType || "document"} with Senes Media.</p>
       <p style="margin:4px 0 0">Senes Media &middot; South Africa</p>
     </div>
+    ${trackingPixel ? `<img src="${trackingPixel}" width="1" height="1" style="display:none;width:1px;height:1px;border:0" alt="" />` : ""}
   </div>
 </body>
 </html>`;

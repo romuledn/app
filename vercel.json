@@ -20,6 +20,10 @@
       "dest": "/api/send-email.mjs"
     },
     {
+      "src": "/api/track-open",
+      "dest": "/api/track-open.mjs"
+    },
+    {
       "handle": "filesystem"
     },
     {

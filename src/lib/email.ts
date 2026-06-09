@@ -8,6 +8,8 @@ type EmailPayload = {
   clientName?: string;
   total?: string;
   shareUrl?: string;
+  trackingId?: string;       // document UUID for open tracking
+  trackingTable?: "i" | "q"; // i = invoices, q = quotations
 };
 
 const EMAIL_API = "https://senes-accounts.vercel.app/api/send-email";
