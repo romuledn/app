@@ -24,10 +24,6 @@
       "dest": "/api/track-open.mjs"
     },
     {
-      "src": "/api/test-notify",
-      "dest": "/api/test-notify.mjs"
-    },
-    {
       "handle": "filesystem"
     },
     {
