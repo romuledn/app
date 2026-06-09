@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     const body =
       typeof req.body === "string" ? JSON.parse(req.body) : req.body;
 
-    const { to, subject, message, replyTo, documentType, documentNumber, clientName, total, shareUrl, trackingId, trackingTable } = body;
+    const { to, subject, message, replyTo, documentType, documentNumber, clientName, total, shareUrl, bankDetails, trackingId, trackingTable } = body;
 
     if (!to || !subject || !message) {
       return res.status(400).json({ error: "Missing required fields: to, subject, message" });
@@ -58,7 +58,7 @@ export default async function handler(req, res) {
     }
 
     // Build a nicely formatted HTML email
-    const html = buildHtml({ message, documentType, documentNumber, clientName, total, shareUrl, trackingPixel });
+    const html = buildHtml({ message, documentType, documentNumber, clientName, total, shareUrl, bankDetails, trackingPixel });
 
     const fromAddress = process.env.SMTP_FROM || `Senes Media <${process.env.SMTP_USER}>`;
 
@@ -90,7 +90,7 @@ export default async function handler(req, res) {
   }
 }
 
-function buildHtml({ message, documentType, documentNumber, clientName, total, shareUrl, trackingPixel }) {
+function buildHtml({ message, documentType, documentNumber, clientName, total, shareUrl, bankDetails, trackingPixel }) {
   const escapedMessage = message
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -117,6 +117,13 @@ function buildHtml({ message, documentType, documentNumber, clientName, total, s
          </table>`
       : "";
 
+  const bankingSection = bankDetails
+    ? `<div style="margin:24px 0;padding:20px 24px;background:#f0f9ff;border-radius:8px;border-left:4px solid #dc2626">
+        <h3 style="margin:0 0 8px;font-size:14px;color:#111827;font-weight:600">Banking Details</h3>
+        <p style="margin:0;color:#374151;font-size:13px;line-height:1.8;white-space:pre-line">${bankDetails.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+       </div>`
+    : "";
+
   return `
 <!DOCTYPE html>
 <html>
@@ -131,6 +138,7 @@ function buildHtml({ message, documentType, documentNumber, clientName, total, s
         ${escapedMessage}
       </div>
       ${summaryTable}
+      ${bankingSection}
       ${viewButton}
     </div>
     <div style="text-align:center;margin-top:24px;color:#9ca3af;font-size:12px">

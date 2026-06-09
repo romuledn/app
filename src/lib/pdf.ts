@@ -391,7 +391,7 @@ export async function generatePdf(doc: DocData): Promise<jsPDF> {
   }
 
   // ===== Bank / Payment Details =====
-  if (doc.bankDetails && doc.kind !== "QUOTATION") {
+  if (doc.bankDetails) {
     const bankTop = ttY + 24;
     pdf.setFont(DISPLAY, "bold");
     pdf.setFontSize(10);
@@ -486,6 +486,7 @@ export async function openEmailWithPdf(doc: DocData, shareUrl?: string, tracking
     `Please find your ${labelFor.toLowerCase()} #${doc.number} for "${doc.title}".\n\n` +
     `Total: ${formatMoney(doc.total, doc.currency)}\n` +
     (doc.dueOrValid ? `${doc.dueOrValidLabel}: ${formatDate(doc.dueOrValid)}\n` : "") +
+    (doc.bankDetails ? `\nBanking Details:\n${doc.bankDetails}\n` : "") +
     (shareUrl ? `\nView & download online: ${shareUrl}\n` : "") +
     `\nKind regards,\n${doc.business.name || ""}`;
 
@@ -504,6 +505,7 @@ export async function openEmailWithPdf(doc: DocData, shareUrl?: string, tracking
     clientName: clientName(doc),
     total: formatMoney(doc.total, doc.currency),
     shareUrl: shareUrl || "",
+    bankDetails: doc.bankDetails || undefined,
     trackingId: trackingId || undefined,
     trackingTable: doc.kind === "QUOTATION" ? "q" : doc.kind === "INVOICE" ? "i" : undefined,
   });

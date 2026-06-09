@@ -40,6 +40,7 @@ function Invoices() {
     subtotal: Number(i.subtotal), discount: Number(i.discount || 0), taxRate: Number(i.tax_rate),
     total: Number(i.total), amountPaid: Number(i.amount_paid || 0), notes: i.notes, issueDate: i.issue_date,
     dueOrValidLabel: "Due", dueOrValid: i.due_date, terms: i.terms || profile?.terms_conditions,
+    bankDetails: (profile?.bank_accounts as Record<string, string> | null)?.[i.currency || profile?.default_currency || "ZAR"] || profile?.bank_details || null,
     business: { name: profile?.business_name, email: profile?.business_email, phone: profile?.business_phone, address: profile?.business_address },
     client: i.clients,
     design: profile?.doc_design,

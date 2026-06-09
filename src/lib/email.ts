@@ -8,6 +8,7 @@ type EmailPayload = {
   clientName?: string;
   total?: string;
   shareUrl?: string;
+  bankDetails?: string;       // currency-specific banking details
   trackingId?: string;       // document UUID for open tracking
   trackingTable?: "i" | "q"; // i = invoices, q = quotations
 };

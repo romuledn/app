@@ -39,6 +39,7 @@ function Quotations() {
     depositPercent: Number(row.deposit_percent || 0),
     total: Number(row.total), notes: row.notes, issueDate: row.created_at,
     dueOrValidLabel: "Valid until", dueOrValid: row.valid_until, terms: row.terms || profile?.terms_conditions,
+    bankDetails: (profile?.bank_accounts as Record<string, string> | null)?.[row.currency || profile?.default_currency || "ZAR"] || profile?.bank_details || null,
     business: { name: profile?.business_name, email: profile?.business_email, phone: profile?.business_phone, address: profile?.business_address },
     client: row.clients,
     design: profile?.doc_design,
