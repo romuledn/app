@@ -76,14 +76,14 @@ function Quotations() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-8 py-8">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-7xl space-y-4 px-4 py-4 md:space-y-6 md:px-8 md:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold">Quotations</h1>
-          <p className="text-sm text-muted-foreground">Deposit %, follow-ups, online accept &amp; tracked views.</p>
+          <h1 className="font-display text-2xl font-bold md:text-3xl">Quotations</h1>
+          <p className="text-xs text-muted-foreground md:text-sm">Deposit %, follow-ups, online accept &amp; tracked views.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={exportCsv}><FileDown className="mr-2 h-4 w-4" /> Export CSV</Button>
+          <Button variant="outline" size="sm" className="md:size-default" onClick={exportCsv}><FileDown className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">Export</span> CSV</Button>
           <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
             <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" /> New quotation</Button></DialogTrigger>
             {open && <DocEditor key={editing?.id ?? "new"} kind="quotation" editing={editing} onDone={() => { setOpen(false); setEditing(null); }} />}
@@ -116,7 +116,7 @@ function Quotations() {
       <div className="space-y-2">
         {filtered.map((row: any) => (
           <Card key={row.id} className="cursor-pointer transition hover:border-primary/50" onClick={() => { setEditing(row); setOpen(true); }}>
-            <CardContent className="flex flex-wrap items-center gap-3 p-4">
+            <CardContent className="flex flex-wrap items-center gap-3 p-3 md:p-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">#{row.number}</span>
@@ -134,7 +134,7 @@ function Quotations() {
                 <div className="font-bold text-primary">{formatMoney(Number(row.total), row.currency)}</div>
                 {row.valid_until && <div className="text-xs text-muted-foreground">Valid {new Date(row.valid_until).toLocaleDateString()}</div>}
               </div>
-              <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+              <div className="flex flex-wrap gap-1 basis-full sm:basis-auto justify-end" onClick={(e) => e.stopPropagation()}>
                 <Button variant="ghost" size="icon" title="Copy share link" onClick={() => {
                   navigator.clipboard.writeText(`${window.location.origin}/share/q/${row.share_token}`);
                   toast.success("Share link copied");

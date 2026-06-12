@@ -25,11 +25,11 @@ function Hosting() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-8 py-8">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-7xl space-y-4 px-4 py-4 md:space-y-6 md:px-8 md:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold">Hosting & subscriptions</h1>
-          <p className="text-sm text-muted-foreground">Renewal alerts at 60, 30 and 7 days before expiry.</p>
+          <h1 className="font-display text-2xl font-bold md:text-3xl">Hosting & subscriptions</h1>
+          <p className="text-xs text-muted-foreground md:text-sm">Renewal alerts at 60, 30 and 7 days before expiry.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" /> New subscription</Button></DialogTrigger>

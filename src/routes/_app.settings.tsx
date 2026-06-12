@@ -86,10 +86,10 @@ function Settings() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-8 py-8">
+    <div className="mx-auto max-w-6xl space-y-4 px-4 py-4 md:space-y-6 md:px-8 md:py-8">
       <div>
-        <h1 className="font-display text-3xl font-bold">Settings</h1>
-        <p className="text-sm text-muted-foreground">Business info, document design, and account tools.</p>
+        <h1 className="font-display text-2xl font-bold md:text-3xl">Settings</h1>
+        <p className="text-xs text-muted-foreground md:text-sm">Business info, document design, and account tools.</p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
@@ -104,12 +104,12 @@ function Settings() {
         <CardHeader><CardTitle>Business profile</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <Row label="Business name"><Input value={f.business_name} onChange={(e) => setF({ ...f, business_name: e.target.value })} /></Row>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Row label="Email"><Input value={f.business_email} onChange={(e) => setF({ ...f, business_email: e.target.value })} /></Row>
             <Row label="Phone"><Input value={f.business_phone} onChange={(e) => setF({ ...f, business_phone: e.target.value })} /></Row>
           </div>
           <Row label="Address"><Textarea rows={2} value={f.business_address} onChange={(e) => setF({ ...f, business_address: e.target.value })} /></Row>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Row label="Default currency">
               <Select value={f.default_currency} onValueChange={(v) => setF({ ...f, default_currency: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>

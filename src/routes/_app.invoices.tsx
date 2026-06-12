@@ -68,14 +68,14 @@ function Invoices() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-8 py-8">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-7xl space-y-4 px-4 py-4 md:space-y-6 md:px-8 md:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold">Invoices</h1>
-          <p className="text-sm text-muted-foreground">Live countdown · partial payments · recurring · share links.</p>
+          <h1 className="font-display text-2xl font-bold md:text-3xl">Invoices</h1>
+          <p className="text-xs text-muted-foreground md:text-sm">Live countdown · partial payments · recurring · share links.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={exportCsv}><FileDown className="mr-2 h-4 w-4" /> Export CSV</Button>
+          <Button variant="outline" size="sm" className="md:size-default" onClick={exportCsv}><FileDown className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">Export</span> CSV</Button>
           <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
             <DialogTrigger asChild><Button><Plus className="mr-2 h-4 w-4" /> New invoice</Button></DialogTrigger>
             {open && <DocEditor key={editing?.id ?? "new"} kind="invoice" editing={editing} onDone={() => { setOpen(false); setEditing(null); }} />}
@@ -111,10 +111,10 @@ function Invoices() {
           const remaining = Number(i.total) - Number(i.amount_paid || 0);
           return (
             <Card key={i.id} className="cursor-pointer transition hover:border-primary/50" onClick={() => { setEditing(i); setOpen(true); }}>
-              <CardContent className="flex flex-wrap items-center gap-3 p-4">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">#{i.number}</span>
+              <CardContent className="flex flex-wrap items-center gap-3 p-3 md:p-4">
+                <div className="min-w-0 flex-1 basis-full sm:basis-auto">
+                  <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
+                    <span className="font-semibold text-sm md:text-base">#{i.number}</span>
                     <Badge variant="outline" className={
                       i.status === "paid" ? "border-success/40 bg-success/20 text-success"
                       : isOverdue ? "border-destructive/40 bg-destructive/20 text-destructive"
@@ -138,7 +138,7 @@ function Invoices() {
                   )}
                   {i.status !== "paid" && <Countdown target={i.due_date} label="until due" />}
                 </div>
-                <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                <div className="flex flex-wrap gap-1 basis-full sm:basis-auto justify-end" onClick={(e) => e.stopPropagation()}>
                   <Button variant="ghost" size="icon" title="Copy share link" onClick={() => {
                     navigator.clipboard.writeText(`${window.location.origin}/share/i/${i.share_token}`);
                     toast.success("Share link copied");

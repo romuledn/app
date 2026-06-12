@@ -59,10 +59,10 @@ function Receipts() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-8 py-8">
+    <div className="mx-auto max-w-7xl space-y-4 px-4 py-4 md:space-y-6 md:px-8 md:py-8">
       <div>
-        <h1 className="font-display text-3xl font-bold">Receipts</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="font-display text-2xl font-bold md:text-3xl">Receipts</h1>
+        <p className="text-xs text-muted-foreground md:text-sm">
           Auto-generated when invoices are paid in full.
         </p>
       </div>

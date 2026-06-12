@@ -172,7 +172,7 @@ export function DocEditor({
         <DialogTitle>{editing ? "Edit" : "New"} {isQuote ? "quotation" : "invoice"}</DialogTitle>
       </DialogHeader>
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Client *">
             <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
               <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
@@ -184,7 +184,7 @@ export function DocEditor({
           <Field label="Number"><Input value={form.number} onChange={(e) => setForm({ ...form, number: e.target.value })} /></Field>
         </div>
         <Field label="Title *"><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Website redesign" /></Field>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Field label="Currency">
             <Select value={form.currency} onValueChange={(v) => setForm({ ...form, currency: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -214,10 +214,10 @@ export function DocEditor({
             {form.items.map((it, idx) => (
               <div key={idx} className="rounded-lg border bg-card p-3 space-y-2">
                 <div className="grid grid-cols-12 gap-2">
-                  <Textarea className="col-span-6" rows={1} placeholder="Title / description" value={it.description} onChange={(e) => updateItem(idx, { description: e.target.value })} />
-                  <Input className="col-span-2" type="number" placeholder="Qty" value={it.quantity} onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })} />
-                  <Input className="col-span-3" type="number" placeholder="Price" value={it.price} onChange={(e) => updateItem(idx, { price: Number(e.target.value) })} />
-                  <Button variant="ghost" size="icon" className="col-span-1" onClick={() => setForm({ ...form, items: form.items.filter((_, i) => i !== idx) })}>
+                  <Textarea className="col-span-12 sm:col-span-6" rows={1} placeholder="Title / description" value={it.description} onChange={(e) => updateItem(idx, { description: e.target.value })} />
+                  <Input className="col-span-5 sm:col-span-2" type="number" placeholder="Qty" value={it.quantity} onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })} />
+                  <Input className="col-span-5 sm:col-span-3" type="number" placeholder="Price" value={it.price} onChange={(e) => updateItem(idx, { price: Number(e.target.value) })} />
+                  <Button variant="ghost" size="icon" className="col-span-2 sm:col-span-1" onClick={() => setForm({ ...form, items: form.items.filter((_, i) => i !== idx) })}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
@@ -233,7 +233,7 @@ export function DocEditor({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Field label="Discount"><Input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: Number(e.target.value) })} /></Field>
           <Field label="Tax %"><Input type="number" value={form.tax_rate} onChange={(e) => setForm({ ...form, tax_rate: Number(e.target.value) })} /></Field>
           {isQuote ? (
